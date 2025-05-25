@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: chat_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chat
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./infrastructure/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chat_network
+
+  redis:
+    image: redis:7
+    container_name: chat_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - chat_network
+
+  auth:
+    build:
+      context: ./auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET=secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chat_network
+
+  dbmate:
+    image: amacneil/dbmate:1.16.0
+    volumes:
+      - ./migrations:/db/migrations
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/chat?sslmode=disable
+      DBMATE_MIGRATIONS_DIR: /db/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    networks:
+      - chat_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  chat_network:
+    driver: bridge
