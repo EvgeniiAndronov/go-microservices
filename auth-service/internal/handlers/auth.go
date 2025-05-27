@@ -24,17 +24,9 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	//var req models.LoginRequest
-	//if err := c.ShouldBindJSON(&req); err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
-	//
-	//user, err := services.Login(req)
-	//if err != nil {
-	//	c.JSON(http.StatusConflict, gin.H{"error": err})
-	//	return
-	//}
-	//
-	//c.JSON(http.StatusAccepted, gin.H{"user": user})
+	c.JSON(http.StatusOK, gin.H{"Login": "OK"})
+}
+
+func Me(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"Me": "OK"})
 }
