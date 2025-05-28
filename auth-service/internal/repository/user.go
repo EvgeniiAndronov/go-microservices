@@ -15,7 +15,7 @@ func CreateUser(user *models.User) error {
 	return db.Create(user).Error
 }
 
-func FoundUser(userInput *models.User) (bool, error) {
+func FoundUserByEmail(userInput *models.User) (bool, error) {
 	var userFound *models.User
 
 	if err := db.Where("email = ?", userInput.Email).First(&userFound).Error; err != nil {
@@ -28,4 +28,13 @@ func FoundUser(userInput *models.User) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func FoundUserById(id string) (*models.User, error) {
+	var userFound models.User
+	if err := db.Where("id = ?", id).First(&userFound).Error; err != nil {
+		return nil, err
+	}
+
+	return &userFound, nil
 }

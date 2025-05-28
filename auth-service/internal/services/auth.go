@@ -20,6 +20,7 @@ func RegisterUser(req models.LoginRequest) (*models.AuthResponse, error) {
 	user := &models.User{
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
+		Username:     req.Username,
 	}
 
 	if err := repository.CreateUser(user); err != nil {
@@ -38,14 +39,14 @@ func RegisterUser(req models.LoginRequest) (*models.AuthResponse, error) {
 func AuthUser(req models.LoginRequest) (*models.AuthResponse, error) {
 	secretWord := LoadSecret().Word
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	//hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 
 	user := &models.User{
-		Email:        req.Email,
-		PasswordHash: string(hashedPassword),
+		Email:    req.Email,
+		Username: req.Username,
 	}
 
-	created, err := repository.FoundUser(user)
+	created, err := repository.FoundUserByEmail(user)
 	if err != nil && created != true {
 		return nil, errors.New("User not found")
 	}
@@ -55,6 +56,27 @@ func AuthUser(req models.LoginRequest) (*models.AuthResponse, error) {
 		return nil, err
 	}
 	return &models.AuthResponse{Token: token, User: *user}, nil
+}
+
+func AuthsMidlware(token string) (*models.User, error) {
+	secretWord := LoadSecret().Word
+	userID, err := jwt.ParseToken(token, secretWord)
+	if err != nil {
+		return nil, err
+	}
+
+	//if sub, ok := claims["sub"].(string); ok {
+	//	foundedId = sub
+	//} else {
+	//	foundedId = "empty_id"
+	//}
+
+	userData, err := repository.FoundUserById(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return userData, nil
 }
 
 func LoadSecret() Secret {

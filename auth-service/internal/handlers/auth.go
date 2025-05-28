@@ -40,5 +40,11 @@ func Login(c *gin.Context) {
 }
 
 func Me(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"Me": "OK"})
+	userData, exist := c.Get("userData")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userData not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"Me": userData})
 }
